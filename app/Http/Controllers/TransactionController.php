@@ -25,8 +25,14 @@ class TransactionController extends BaseController
     }
 
     public function create() {
+        // Get all categories from the database
         $categories = Category::all();
-        $accounts = Account::where('user_id', Auth::id())->get();
+        
+        // Get accounts for the authenticated user
+        $accounts = Account::where('user_id', Auth::id())
+            ->with('transactions') // Load transactions relation
+            ->get();
+
         return view('transactions.create', compact('categories', 'accounts'));
     }
 

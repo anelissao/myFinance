@@ -26,11 +26,8 @@
                 <label for="account_id">Account</label>
                 <select id="account_id" name="account_id" class="form-control" required>
                     <option value="">Select an account</option>
-                    @foreach($accounts as $account)
-                        <option value="{{ $account->id }}" {{ old('account_id') == $account->id ? 'selected' : '' }}>
-                            {{ $account->name }} ({{ number_format($account->balance, 2) }})
-                        </option>
-                    @endforeach
+                    <option value="1">Main Account</option>
+                    <option value="2">Savings Account</option>
                 </select>
             </div>
 
@@ -39,18 +36,20 @@
                 <select id="category_id" name="category_id" class="form-control" required>
                     <option value="">Select a category</option>
                     <optgroup label="Income">
-                        @foreach($categories->where('type', 'income') as $category)
-                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
+                        <option value="1">Salary</option>
+                        <option value="2">Freelance</option>
+                        <option value="3">Gifts</option>
+                        <option value="4">Investments</option>
                     </optgroup>
-                    <optgroup label="Expense">
-                        @foreach($categories->where('type', 'expense') as $category)
-                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
+                    <optgroup label="Expenses">
+                        <option value="5">Logement</option>
+                        <option value="6">Transport</option>
+                        <option value="7">Loisirs</option>
+                        <option value="8">Food</option>
+                        <option value="9">Bills</option>
+                        <option value="10">Shopping</option>
+                        <option value="11">Health</option>
+                        <option value="12">Education</option>
                     </optgroup>
                 </select>
             </div>
