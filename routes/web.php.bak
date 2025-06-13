@@ -1,0 +1,50 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TransactionController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+// Guest routes
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+// Auth routes
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    
+    // Transaction routes
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
+    Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+});ate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TransactionController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+// Guest routes
+Route::get('/register', [AuthController::class, 'showRegister'])->middleware('guest');
+Route::post('/register', [AuthController::class, 'register']);
+Route::get('/login', [AuthController::class, 'showLogin'])->middleware('guest');
+Route::post('/login', [AuthController::class, 'login']);
+
+// Auth routes
+Route::get('/dashboard', [AuthController::class, 'dashboard'])->middleware('auth');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::get('/transactions/create', [TransactionController::class, 'create']);
+    Route::post('/transactions', [TransactionController::class, 'store']);
+});

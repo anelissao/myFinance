@@ -152,8 +152,83 @@
     </style>
 </head>
 <body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="{{ url('/') }}" class="nav-brand">MyFinance</a>
+            
+            <div class="nav-menu">
+                @auth
+                    <a href="{{ url('/dashboard') }}" class="nav-link">Dashboard</a>
+                    <a href="{{ url('/transactions') }}" class="nav-link">Transactions</a>
+                    <form method="POST" action="{{ url('/logout') }}" class="nav-item">
+                        @csrf
+                        <button type="submit" class="btn-link">Logout</button>
+                    </form>
+                @else
+                    <a href="{{ url('/login') }}" class="nav-link">Login</a>
+                    <a href="{{ url('/register') }}" class="nav-link">Register</a>
+                @endauth
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         @yield('content')
     </div>
+
+    <style>
+        .nav {
+            background-color: var(--primary);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1rem;
+        }
+
+        .btn-link:hover {
+            color: white;
+        }
+    </style>
 </body>
 </html>
