@@ -5,7 +5,36 @@
 @section('content')
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <!-- Profile Summary -->
+        <!-- Users Expenses & Income Overview -->
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-8 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-indigo-800">Vue d'ensemble des utilisateurs</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Revenus</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Dépenses</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse($usersWithTotals as $user)
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user['name'] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user['email'] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">{{ number_format($user['totalIncome'], 2, ',', ' ') }} €</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">{{ number_format($user['totalExpenses'], 2, ',', ' ') }} €</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-400">Aucun utilisateur trouvé.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-8 mb-6">
             <div class="flex items-center justify-between">
                 <div>

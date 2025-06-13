@@ -13,6 +13,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // If the logged-in user is an advisor, redirect to advisor dashboard
+        if (auth()->check() && auth()->user()->role === 'CONSEILLER_FINANCIER') {
+            return redirect()->route('advisors.dashboard');
+        }
         $user = auth()->user();
         $now = Carbon::now();
         $sixMonthsAgo = $now->copy()->subMonths(6);

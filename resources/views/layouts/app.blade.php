@@ -32,23 +32,35 @@
                             </a>
                         </div>
 
-                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <a href="{{ route('dashboard') }}" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Tableau de bord
-                            </a>
-                            <a href="{{ route('transactions.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Transactions
-                            </a>
-                            <a href="{{ route('budgets.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Budgets
-                            </a>
-                            <a href="{{ route('goals.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Objectifs
-                            </a>
-                            <a href="{{ route('advisors.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Conseillers
-                            </a>
-                        </div>
+                        @if(auth()->user()->role === 'CONSEILLER_FINANCIER')
+                            <div class="w-full bg-indigo-900 text-white px-4 py-3 mb-2 rounded shadow-lg flex flex-col items-center">
+                                <div class="font-bold text-lg mb-1">Mode Conseiller Financier</div>
+                                <div class="flex space-x-6">
+                                    <a href="{{ route('advisors.dashboard') }}" class="hover:text-yellow-300 font-semibold">Dashboard Conseiller</a>
+                                    <a href="{{ route('advisors.profile') }}" class="hover:text-yellow-300 font-semibold">Profil Public</a>
+                                    <a href="{{ route('advisors.history') }}" class="hover:text-yellow-300 font-semibold">Historique Connexions</a>
+                                    <a href="#" class="hover:text-yellow-300 font-semibold">Mes Clients</a>
+                                </div>
+                            </div>
+                        @else
+                            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                                <a href="{{ route('dashboard') }}" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Tableau de bord
+                                </a>
+                                <a href="{{ route('transactions.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Transactions
+                                </a>
+                                <a href="{{ route('budgets.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Budgets
+                                </a>
+                                <a href="{{ route('goals.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Objectifs
+                                </a>
+                                <a href="{{ route('advisors.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Conseillers
+                                </a>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="flex items-center">

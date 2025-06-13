@@ -31,7 +31,12 @@ class LoginController extends Controller
                 'ip_address' => $request->ip(),
             ]);
 
-            return redirect()->intended('dashboard');
+            // Redirect based on user role
+            $user = Auth::user();
+            if ($user->role === 'CONSEILLER_FINANCIER') {
+                return redirect()->intended(route('advisors.dashboard'));
+            }
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([

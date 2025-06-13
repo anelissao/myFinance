@@ -11,6 +11,9 @@ use App\Http\Controllers\AdvisorController;
 
 // Public routes
 Route::get('/', function () {
+    if (auth()->check() && auth()->user()->role === 'CONSEILLER_FINANCIER') {
+        return redirect()->route('advisors.dashboard');
+    }
     return view('welcome');
 });
 
@@ -38,10 +41,10 @@ Route::get('/test-goal-alert', function (\Illuminate\Http\Request $request) {
 });
 
 // Advisor protected routes
-Route::middleware(['auth', 'advisor'])->group(function () {
-    Route::get('/advisor/dashboard', [\App\Http\Controllers\AdvisorController::class, 'dashboard'])->name('advisors.dashboard');
-    Route::get('/advisor/profile', [\App\Http\Controllers\AdvisorController::class, 'profile'])->name('advisors.profile');
-    Route::get('/advisor/history', [\App\Http\Controllers\AdvisorController::class, 'history'])->name('advisors.history');
+Route::prefix('advisor')->name('advisors.')->middleware(['auth', 'advisor'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\AdvisorController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [\App\Http\Controllers\AdvisorController::class, 'profile'])->name('profile');
+    Route::get('/history', [\App\Http\Controllers\AdvisorController::class, 'history'])->name('history');
 });
 
 // Protected routes
@@ -66,7 +69,8 @@ Route::middleware('auth')->group(function () {
 });
 
 // Admin routes
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+// FIX: 'role:admin' middleware does not exist. Use only 'auth' or create an AdminMiddleware if needed.
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('dashboard');
     Route::delete('/users/{user}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
 });
