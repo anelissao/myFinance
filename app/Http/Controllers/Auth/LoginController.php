@@ -33,10 +33,14 @@ class LoginController extends Controller
 
             // Redirect based on user role
             $user = Auth::user();
-            if ($user->role === 'CONSEILLER_FINANCIER') {
-                return redirect()->intended(route('advisors.dashboard'));
+            switch ($user->role) {
+                case 'ADMIN':
+                    return redirect()->intended(route('admin.dashboard'));
+                case 'CONSEILLER_FINANCIER':
+                    return redirect()->intended(route('advisors.dashboard'));
+                default:
+                    return redirect()->intended(route('dashboard'));
             }
-            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([

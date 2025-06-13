@@ -11,8 +11,15 @@ use App\Http\Controllers\AdvisorController;
 
 // Public routes
 Route::get('/', function () {
-    if (auth()->check() && auth()->user()->role === 'CONSEILLER_FINANCIER') {
-        return redirect()->route('advisors.dashboard');
+    if (auth()->check()) {
+        switch(auth()->user()->role) {
+            case 'ADMIN':
+                return redirect()->route('admin.dashboard');
+            case 'CONSEILLER_FINANCIER':
+                return redirect()->route('advisors.dashboard');
+            default:
+                return redirect()->route('dashboard');
+        }
     }
     return view('welcome');
 });
@@ -40,17 +47,25 @@ Route::get('/test-goal-alert', function (\Illuminate\Http\Request $request) {
     return 'Goal alert email sent to ' . $to;
 });
 
-// Advisor protected routes
-Route::prefix('advisor')->name('advisors.')->middleware(['auth', 'advisor'])->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\AdvisorController::class, 'dashboard'])->name('dashboard');
-    Route::get('/profile', [\App\Http\Controllers\AdvisorController::class, 'profile'])->name('profile');
-    Route::get('/history', [\App\Http\Controllers\AdvisorController::class, 'history'])->name('history');
+// Admin routes
+Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('dashboard');
+    Route::delete('/users/{user}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
 });
 
-// Protected routes
-Route::middleware('auth')->group(function () {
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-    
+// Advisor routes
+Route::middleware(['auth', 'role:CONSEILLER_FINANCIER'])->prefix('advisor')->name('advisors.')->group(function () {
+    Route::get('/dashboard', [AdvisorController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [AdvisorController::class, 'profile'])->name('profile');
+    Route::get('/history', [AdvisorController::class, 'history'])->name('history');
+    Route::get('/clients', [AdvisorController::class, 'clients'])->name('clients');
+    Route::get('/reports', [AdvisorController::class, 'reports'])->name('reports');
+    Route::get('/schedule', [AdvisorController::class, 'schedule'])->name('schedule');
+    Route::get('/schedule/settings', [AdvisorController::class, 'scheduleSettings'])->name('schedule.settings');
+});
+
+// User routes
+Route::middleware(['auth', 'role:UTILISATEUR'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -66,16 +81,4 @@ Route::middleware('auth')->group(function () {
     // Financial Goals
     Route::resource('goals', FinancialGoalController::class);
     Route::get('/goals/{goal}/simulate', [FinancialGoalController::class, 'simulateSavings'])->name('goals.simulate');
-});
-
-// Admin routes
-// FIX: 'role:admin' middleware does not exist. Use only 'auth' or create an AdminMiddleware if needed.
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('dashboard');
-    Route::delete('/users/{user}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
-});
-
-// Dashboard route
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 });
