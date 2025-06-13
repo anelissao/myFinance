@@ -3,275 +3,194 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<div class="dashboard">
-    <!-- Welcome Section -->
-    <div class="welcome-bar">
-        <h1>Welcome, {{ Auth::user()->name }}</h1>
-        <div class="date">{{ now()->format('F d, Y') }}</div>
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-title">Total Balance</div>
-            <div class="stat-value">{{ number_format($totalBalance ?? 0, 2) }} €</div>
-            <div class="stat-label">Across all accounts</div>
+<div class="py-12">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- Flux de trésorerie -->
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg mb-6">
+            <div class="p-6">
+                <h2 class="text-2xl font-semibold mb-4">Flux de Trésorerie</h2>
+                <canvas id="cashFlowChart" height="200"></canvas>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-title">Monthly Income</div>
-            <div class="stat-value income">{{ number_format($monthlyIncome ?? 0, 2) }} €</div>
-            <div class="stat-label">This month</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Top Dépenses -->
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-2xl font-semibold mb-4">Top Dépenses par Catégorie</h2>
+                    <canvas id="topExpensesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Évolution de l'épargne -->
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-2xl font-semibold mb-4">Évolution de l'Épargne</h2>
+                    <canvas id="savingsChart"></canvas>
+                </div>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-title">Monthly Expenses</div>
-            <div class="stat-value expense">{{ number_format($monthlyExpenses ?? 0, 2) }} €</div>
-            <div class="stat-label">This month</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-title">Budget Status</div>
-            <div class="stat-value">{{ $budgetUsagePercentage ?? 0 }}%</div>
-            <div class="stat-label">Of monthly budget used</div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <h2>Quick Actions</h2>
-        <div class="action-buttons">
-            <a href="{{ route('transactions.create') }}" class="action-btn">
-                <span>➕</span> Add Transaction
-            </a>
-            <a href="{{ route('transactions.index') }}" class="action-btn">
-                <span>📊</span> View Transactions
-            </a>
-        </div>
-    </div>
-
-    <!-- Recent Transactions -->
-    <div class="recent-section">
-        <div class="section-header">
-            <h2>Recent Transactions</h2>
-            <a href="{{ route('transactions.index') }}" class="view-all">View All</a>
-        </div>
-        
-        @if(isset($recentTransactions) && $recentTransactions->count() > 0)
-            <div class="transactions-list">
-                @foreach($recentTransactions as $transaction)
-                    <div class="transaction-item">
-                        <div class="transaction-info">
-                            <div class="transaction-title">{{ $transaction->description ?: 'Unnamed Transaction' }}</div>
-                            <div class="transaction-category">{{ $transaction->category->name }}</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Statistiques -->
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-2xl font-semibold mb-4">Statistiques Mensuelles</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Total des Revenus</h3>
+                            <p class="text-3xl font-bold text-green-600">{{ number_format($monthlyStats['income'], 2, ',', ' ') }} €</p>
                         </div>
-                        <div class="transaction-amount {{ $transaction->amount > 0 ? 'income' : 'expense' }}">
-                            {{ $transaction->amount > 0 ? '+' : '' }}{{ number_format($transaction->amount, 2) }} €
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Total des Dépenses</h3>
+                            <p class="text-3xl font-bold text-red-600">{{ number_format($monthlyStats['expenses'], 2, ',', ' ') }} €</p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Épargne du Mois</h3>
+                            <p class="text-3xl font-bold text-blue-600">{{ number_format($monthlyStats['savings'], 2, ',', ' ') }} €</p>
                         </div>
                     </div>
-                @endforeach
+                </div>
             </div>
-        @else
-            <div class="empty-state">
-                <p>No recent transactions</p>
-                <a href="{{ route('transactions.create') }}" class="btn btn-secondary">Add your first transaction</a>
+
+            <!-- Suggestions -->
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-2xl font-semibold mb-4">Suggestions Personnalisées</h2>
+                    <div class="space-y-4">
+                        @foreach($suggestions as $suggestion)
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">{{ $suggestion }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
-        @endif
+        </div>
     </div>
 </div>
 
-<style>
-    .dashboard {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-    }
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuration des couleurs
+    const colors = {
+        blue: 'rgb(59, 130, 246)',
+        green: 'rgb(16, 185, 129)',
+        red: 'rgb(239, 68, 68)',
+        yellow: 'rgb(245, 158, 11)',
+    };
 
-    .welcome-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-    }
-
-    .welcome-bar h1 {
-        font-size: 1.5rem;
-        color: var(--primary);
-    }
-
-    .date {
-        color: var(--text-muted);
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: var(--surface);
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-title {
-        color: var(--text-muted);
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--primary);
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-        color: var(--text-muted);
-        font-size: 0.875rem;
-    }
-
-    .quick-actions {
-        margin-bottom: 2rem;
-    }
-
-    .quick-actions h2 {
-        font-size: 1.25rem;
-        color: var(--primary);
-        margin-bottom: 1rem;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .action-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        background: var(--surface);
-        border: 1px solid #eee;
-        border-radius: 8px;
-        color: var(--text-main);
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-        border-color: var(--secondary);
-        color: var(--secondary);
-    }
-
-    .recent-section {
-        background: var(--surface);
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
-    .section-header h2 {
-        font-size: 1.25rem;
-        color: var(--primary);
-    }
-
-    .view-all {
-        color: var(--secondary);
-        text-decoration: none;
-    }
-
-    .transactions-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .transaction-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
-        border-bottom: 1px solid #eee;
-    }
-
-    .transaction-item:last-child {
-        border-bottom: none;
-    }
-
-    .transaction-title {
-        font-weight: 500;
-        color: var(--text-main);
-    }
-
-    .transaction-category {
-        font-size: 0.875rem;
-        color: var(--text-muted);
-    }
-
-    .transaction-amount {
-        font-family: monospace;
-        font-weight: 500;
-    }
-
-    .income {
-        color: var(--success);
-    }
-
-    .expense {
-        color: var(--error);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-muted);
-    }
-
-    .empty-state .btn {
-        display: inline-block;
-        margin-top: 1rem;
-    }
-
-    .btn-secondary {
-        background-color: var(--accent);
-        color: var(--primary);
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        text-decoration: none;
-        transition: opacity 0.2s;
-    }
-
-    .btn-secondary:hover {
-        opacity: 0.9;
-    }
-
-    @media (max-width: 768px) {
-        .dashboard {
-            padding: 1rem;
+    // Flux de trésorerie
+    new Chart(document.getElementById('cashFlowChart'), {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($cashFlow['labels']) !!},
+            datasets: [{
+                label: 'Revenus',
+                data: {!! json_encode($cashFlow['income']) !!},
+                borderColor: colors.green,
+                backgroundColor: colors.green + '20',
+                fill: true
+            }, {
+                label: 'Dépenses',
+                data: {!! json_encode($cashFlow['expenses']) !!},
+                borderColor: colors.red,
+                backgroundColor: colors.red + '20',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' €';
+                        }
+                    }
+                }
+            }
         }
+    });
 
-        .stats-grid {
-            grid-template-columns: 1fr;
+    // Top dépenses
+    new Chart(document.getElementById('topExpensesChart'), {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode($topExpenses['labels']) !!},
+            datasets: [{
+                data: {!! json_encode($topExpenses['data']) !!},
+                backgroundColor: [
+                    colors.blue,
+                    colors.green,
+                    colors.red,
+                    colors.yellow,
+                    'rgb(139, 92, 246)',
+                ],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+            }
         }
+    });
 
-        .welcome-bar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
+    // Évolution de l'épargne
+    new Chart(document.getElementById('savingsChart'), {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($savings['labels']) !!},
+            datasets: [{
+                label: 'Épargne',
+                data: {!! json_encode($savings['data']) !!},
+                borderColor: colors.blue,
+                backgroundColor: colors.blue + '20',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' €';
+                        }
+                    }
+                }
+            }
         }
-    }
-</style>
+    });
+});
+</script>
+@endpush
 @endsection

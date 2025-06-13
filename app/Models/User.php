@@ -14,7 +14,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that are mass assignable.
-     *
      * @var array<string>
      */
     protected $fillable = [
@@ -27,7 +26,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be hidden for serialization.
-     *
      * @var array<string>
      */
     protected $hidden = [
@@ -36,17 +34,64 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * The attributes that should be cast.
+     * @var array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'preferences' => 'json',
+    ];
+
+    // Getters
+    public function getName(): string
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'preferences' => 'json',
-        ];
+        return $this->name;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    public function getPreferences(): array
+    {
+        return $this->preferences;
+    }
+
+    public function getEmailVerifiedAt(): ?\DateTime
+    {
+        return $this->email_verified_at;
+    }
+
+    // Setters
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+        $this->save();
+    }
+
+    public function setEmail(string $email): void
+    {
+        $this->email = $email;
+        $this->save();
+    }
+
+    public function setRole(string $role): void
+    {
+        $this->role = $role;
+        $this->save();
+    }
+
+    public function setPreferences(array $preferences): void
+    {
+        $this->preferences = $preferences;
+        $this->save();
     }
 
     /**
