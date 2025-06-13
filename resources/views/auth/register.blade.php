@@ -54,6 +54,20 @@
                     </div>
 
                     <div>
+                        <label for="role" class="block text-sm font-medium text-gray-700">Rôle</label>
+                        <div class="mt-1">
+                            <select id="role" name="role" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">Choisissez un rôle...</option>
+                                <option value="UTILISATEUR" {{ old('role') == 'UTILISATEUR' ? 'selected' : '' }}>Utilisateur</option>
+                                <option value="CONSEILLER_FINANCIER" {{ old('role') == 'CONSEILLER_FINANCIER' ? 'selected' : '' }}>Conseiller Financier</option>
+                            </select>
+                        </div>
+                        @error('role')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="password" class="block text-sm font-medium text-gray-700">
                             Mot de passe
                         </label>

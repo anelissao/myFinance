@@ -36,6 +36,14 @@ class RegisterController extends Controller
             'role' => 'UTILISATEUR',
         ]);
 
+        // Create default account for user
+        \App\Models\Account::create([
+            'user_id' => $user->id,
+            'name' => 'Bank Account',
+            'type' => 'CHECKING',
+            'balance' => 0,
+        ]);
+
         auth()->login($user);
 
         return redirect()->route('dashboard');

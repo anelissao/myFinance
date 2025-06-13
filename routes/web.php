@@ -24,6 +24,26 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
 });
 
+// Test route to send a goal alert email manually
+use Illuminate\Support\Facades\Mail;
+use App\Mail\GoalAlert;
+use App\Models\FinancialGoal;
+
+Route::get('/test-goal-alert', function (\Illuminate\Http\Request $request) {
+    $to = $request->query('to', 'anouarelissaoui20@gmail.com');
+    $goal = FinancialGoal::first();
+    if (!$goal) return 'No financial goals found.';
+    Mail::to($to)->send(new GoalAlert($goal));
+    return 'Goal alert email sent to ' . $to;
+});
+
+// Advisor protected routes
+Route::middleware(['auth', 'advisor'])->group(function () {
+    Route::get('/advisor/dashboard', [\App\Http\Controllers\AdvisorController::class, 'dashboard'])->name('advisors.dashboard');
+    Route::get('/advisor/profile', [\App\Http\Controllers\AdvisorController::class, 'profile'])->name('advisors.profile');
+    Route::get('/advisor/history', [\App\Http\Controllers\AdvisorController::class, 'history'])->name('advisors.history');
+});
+
 // Protected routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -32,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Transactions
+    Route::get('/transactions/export', [TransactionController::class, 'exportCsv'])->name('transactions.export');
     Route::resource('transactions', TransactionController::class);
     Route::post('/transactions/import', [TransactionController::class, 'import'])->name('transactions.import');
     

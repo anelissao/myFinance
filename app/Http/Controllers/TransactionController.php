@@ -20,6 +20,63 @@ class TransactionController extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
 
+    public function exportCsv(Request $request)
+    {
+        $userId = auth()->id();
+        $expenses = \App\Models\Transaction::where('user_id', $userId)->where('type', 'EXPENSE')->get();
+        $income = \App\Models\Transaction::where('user_id', $userId)->where('type', 'INCOME')->get();
+        $goals = \App\Models\FinancialGoal::where('user_id', $userId)->get();
+
+        $callback = function() use ($expenses, $income, $goals) {
+            $handle = fopen('php://output', 'w');
+            // Expenses
+            fputcsv($handle, ['--- Dépenses ---']);
+            fputcsv($handle, ['Date', 'Montant', 'Description', 'Catégorie', 'Compte']);
+            foreach ($expenses as $t) {
+                fputcsv($handle, [
+                    $t->date,
+                    $t->amount,
+                    $t->description,
+                    $t->category ? $t->category->name : '',
+                    $t->account ? $t->account->name : '',
+                ]);
+            }
+            fputcsv($handle, []);
+            // Income
+            fputcsv($handle, ['--- Revenus ---']);
+            fputcsv($handle, ['Date', 'Montant', 'Description', 'Catégorie', 'Compte']);
+            foreach ($income as $t) {
+                fputcsv($handle, [
+                    $t->date,
+                    $t->amount,
+                    $t->description,
+                    $t->category ? $t->category->name : '',
+                    $t->account ? $t->account->name : '',
+                ]);
+            }
+            fputcsv($handle, []);
+            // Goals
+            fputcsv($handle, ['--- Objectifs Financiers ---']);
+            fputcsv($handle, ['Nom', 'Montant cible', 'Montant actuel', 'Date limite']);
+            foreach ($goals as $g) {
+                fputcsv($handle, [
+                    $g->name,
+                    $g->target_amount,
+                    $g->current_amount,
+                    $g->due_date,
+                ]);
+            }
+            fclose($handle);
+        };
+
+        $filename = 'mes_finances_' . now()->format('Ymd_His') . '.csv';
+        return response()->stream($callback, 200, [
+            "Content-Type" => "text/csv",
+            "Content-Disposition" => "attachment; filename={$filename}",
+        ]);
+    }
+    use AuthorizesRequests, ValidatesRequests;
+
     public function index(Request $request)
     {
         $query = Transaction::where('user_id', auth()->id())
@@ -39,13 +96,35 @@ class TransactionController extends BaseController
 
         $transactions = $query->orderByDesc('date')->paginate(20);
 
-        return view('transactions.index', compact('transactions'));
+        $categories = Category::all();
+        $accounts = Account::where('user_id', auth()->id())->get();
+        // --- Persistent Goal Overrun Notification ---
+        $userId = auth()->id();
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+        $totalExpenses = \App\Models\Transaction::where('user_id', $userId)
+            ->where('type', 'EXPENSE')
+            ->whereYear('date', $currentYear)
+            ->whereMonth('date', $currentMonth)
+            ->sum('amount');
+        $goals = \App\Models\FinancialGoal::where('user_id', $userId)->get();
+        $exceededGoals = [];
+        foreach ($goals as $goal) {
+            if ($totalExpenses > $goal->target_amount) {
+                $exceededGoals[] = $goal->name;
+            }
+        }
+        $goalAlert = null;
+        if (!empty($exceededGoals)) {
+            $goalAlert = "Alerte : Vous avez dépassé le montant cible pour l'objectif financier : " . implode(', ', $exceededGoals);
+        }
+        return view('transactions.index', compact('transactions', 'categories', 'accounts', 'goalAlert'));
     }
 
     public function create()
     {
-        $categories = auth()->user()->categories;
-        $accounts = auth()->user()->accounts;
+        $categories = \App\Models\Category::all();
+        $accounts = \App\Models\Account::where('user_id', auth()->id())->get();
         return view('transactions.create', compact('categories', 'accounts'));
     }
 
@@ -57,14 +136,39 @@ class TransactionController extends BaseController
             'description' => 'required|string|max:255',
             'date' => 'required|date',
             'category_id' => 'required|exists:categories,id',
-            'account_id' => 'required|exists:accounts,id',
         ]);
+
+        // Use the user's default (first) bank account
+        $account = \App\Models\Account::where('user_id', auth()->id())->firstOrFail();
+        $validated['account_id'] = $account->id;
 
         DB::transaction(function () use ($validated) {
             $transaction = Transaction::create($validated + ['user_id' => auth()->id()]);
             $account = Account::find($validated['account_id']);
             $account->updateBalance();
         });
+
+        // --- Financial Goal Overrun Alert ---
+        $goalExceeded = false;
+        $exceededGoals = [];
+        if ($validated['type'] === 'EXPENSE') {
+            $userId = auth()->id();
+            $currentMonth = now()->month;
+            $currentYear = now()->year;
+            $totalExpenses = \App\Models\Transaction::where('user_id', $userId)
+                ->where('type', 'EXPENSE')
+                ->whereYear('date', $currentYear)
+                ->whereMonth('date', $currentMonth)
+                ->sum('amount');
+            $goals = \App\Models\FinancialGoal::where('user_id', $userId)->get();
+            foreach ($goals as $goal) {
+                if ($totalExpenses > $goal->target_amount) {
+                    $goalExceeded = true;
+                    $exceededGoals[] = $goal->name;
+                }
+            }
+        }
+
 
         return redirect()->route('transactions.index')
             ->with('success', 'Transaction créée avec succès.');

@@ -43,7 +43,7 @@
                         <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
                             <div>
                                 <span class="block text-gray-500">Date limite</span>
-                                <span class="block font-medium text-gray-900">{{ $goal->target_date->format('d/m/Y') }}</span>
+                                <span class="block font-medium text-gray-900">{{ $goal->due_date->format('d/m/Y') }}</span>
                             </div>
                             <div>
                                 <span class="block text-gray-500">Épargne mensuelle</span>

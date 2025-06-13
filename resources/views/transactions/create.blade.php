@@ -23,41 +23,33 @@
             @csrf
             
             <div class="form-group">
-                <label for="account_id">Account</label>
-                <select id="account_id" name="account_id" class="form-control" required>
-                    <option value="">Select an account</option>
-                    <option value="1">Main Account</option>
-                    <option value="2">Savings Account</option>
+                <label for="type">Type</label>
+                <select id="type" name="type" class="form-control" required>
+                    <option value="">Select type</option>
+                    <option value="INCOME" {{ old('type') == 'INCOME' ? 'selected' : '' }}>Income</option>
+                    <option value="EXPENSE" {{ old('type') == 'EXPENSE' ? 'selected' : '' }}>Expense</option>
                 </select>
             </div>
 
+
+
             <div class="form-group">
                 <label for="category_id">Category</label>
-                <select id="category_id" name="category_id" class="form-control" required>
+                @if($categories->isEmpty())
+                    <div class="alert alert-warning">No categories found. <a href="{{ url('/categories/create') }}">Create a category</a> first.</div>
+                @endif
+                <select id="category_id" name="category_id" class="form-control" required {{ $categories->isEmpty() ? 'disabled' : '' }}>
                     <option value="">Select a category</option>
-                    <optgroup label="Income">
-                        <option value="1">Salary</option>
-                        <option value="2">Freelance</option>
-                        <option value="3">Gifts</option>
-                        <option value="4">Investments</option>
-                    </optgroup>
-                    <optgroup label="Expenses">
-                        <option value="5">Logement</option>
-                        <option value="6">Transport</option>
-                        <option value="7">Loisirs</option>
-                        <option value="8">Food</option>
-                        <option value="9">Bills</option>
-                        <option value="10">Shopping</option>
-                        <option value="11">Health</option>
-                        <option value="12">Education</option>
-                    </optgroup>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                    @endforeach
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="amount">Amount</label>
                 <input type="number" step="0.01" id="amount" name="amount" value="{{ old('amount') }}" class="form-control" required>
-                <small class="text-muted">Use positive numbers for income and negative for expenses</small>
+                <small class="text-muted">Use positive numbers only. Select type above for income/expense.</small>
             </div>
 
             <div class="form-group">
@@ -71,7 +63,7 @@
             </div>
 
             <div class="form-buttons">
-                <button type="submit" class="btn btn-primary">Save Transaction</button>
+                <button type="submit" class="btn btn-primary">Add Transaction</button>
                 <a href="{{ url('/transactions') }}" class="btn btn-link">Cancel</a>
             </div>
         </form>

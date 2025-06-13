@@ -10,8 +10,8 @@ class FinancialGoalController extends Controller
     public function index()
     {
         $goals = FinancialGoal::where('user_id', auth()->id())
-            ->get()
-            ->map(function ($goal) {
+            ->paginate(20)
+            ->through(function ($goal) {
                 $goal->progress = $goal->getProgressPercentage();
                 $goal->remaining = $goal->getRemainingAmount();
                 return $goal;
@@ -20,14 +20,27 @@ class FinancialGoalController extends Controller
         return view('goals.index', compact('goals'));
     }
 
+    public function create()
+    {
+        return view('goals.create');
+    }
+
+    public function edit(FinancialGoal $goal)
+    {
+        return view('goals.edit', compact('goal'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'target_amount' => 'required|numeric|min:0',
-            'current_amount' => 'required|numeric|min:0',
+            'current_amount' => 'nullable|numeric|min:0',
             'due_date' => 'required|date|after:today',
         ]);
+
+        // Default current_amount to 0 if not provided
+        $validated['current_amount'] = $validated['current_amount'] ?? 0;
 
         $goal = FinancialGoal::create($validated + [
             'user_id' => auth()->id(),
@@ -74,7 +87,6 @@ class FinancialGoalController extends Controller
 
     public function destroy(FinancialGoal $goal)
     {
-        $this->authorize('delete', $goal);
         $goal->delete();
 
         return redirect()->route('goals.index')
