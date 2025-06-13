@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use App\Models\Budget;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BudgetExceeded;
+
 
 class TransactionController extends BaseController
 {
@@ -26,25 +30,45 @@ class TransactionController extends BaseController
         return view('transactions.create', compact('categories', 'accounts'));
     }
 
-    public function store(Request $request) {
-        $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'required|exists:categories,id',
-            'amount' => 'required|numeric',
-            'date' => 'required|date',
-        ]);
+    public function store(Request $request)
+{
+    $request->validate([
+        'account_id' => 'required|exists:accounts,id',
+        'category_id' => 'required|exists:categories,id',
+        'amount' => 'required|numeric',
+        'date' => 'required|date',
+    ]);
 
-        Transaction::create([
-            'user_id' => Auth::id(),
-            'account_id' => $request->account_id,
-            'category_id' => $request->category_id,
-            'amount' => $request->amount,
-            'description' => $request->description,
-            'date' => $request->date,
-        ]);
+    $transaction = Transaction::create([
+        'user_id' => Auth::id(),
+        'account_id' => $request->account_id,
+        'category_id' => $request->category_id,
+        'amount' => $request->amount,
+        'description' => $request->description,
+        'date' => $request->date,
+    ]);
 
-        return redirect('/transactions')->with('success', 'Transaction added.');
+    // 🔔 Budget Alert Logic
+    $month = date('Y-m', strtotime($request->date)); // e.g., "2025-06"
+
+    $total = Transaction::where('user_id', Auth::id())
+        ->where('category_id', $request->category_id)
+        ->where('date', 'like', "$month%")
+        ->sum('amount');
+
+    $budget = Budget::where('user_id', Auth::id())
+        ->where('category_id', $request->category_id)
+        ->where('month', $month)
+        ->first();
+
+    if ($budget && $total > $budget->amount) {
+        Mail::to(Auth::user()->email)->send(new BudgetExceeded($budget, $total));
+        return redirect('/transactions')->with('success', 'Transaction added. ⚠️ Budget exceeded!');
     }
+
+    return redirect('/transactions')->with('success', 'Transaction added.');
+}
+
 
     public function import(Request $request)
     {
