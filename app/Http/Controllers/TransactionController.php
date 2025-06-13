@@ -45,4 +45,28 @@ class TransactionController extends BaseController
 
         return redirect('/transactions')->with('success', 'Transaction added.');
     }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt|max:2048',
+        ]);
+
+        $file = fopen($request->file('csv_file'), 'r');
+        $header = fgetcsv($file); // skip header
+
+        while (($row = fgetcsv($file)) !== false) {
+            Transaction::create([
+                'user_id' => Auth::id(),
+                'amount' => $row[0],
+                'description' => $row[1],
+                'category_id' => isset($row[2]) ? $row[2] : null,
+                'date' => isset($row[3]) ? $row[3] : now(),
+            ]);
+        }
+
+        fclose($file);
+
+        return redirect()->back()->with('success', 'Transactions imported!');
+    }
 }

@@ -25,4 +25,5 @@ Route::middleware("auth")->group(function () {
     Route::get("/transactions", [TransactionController::class, "index"])->name("transactions.index");
     Route::get("/transactions/create", [TransactionController::class, "create"])->name("transactions.create");
     Route::post("/transactions", [TransactionController::class, "store"])->name("transactions.store");
+    Route::post("/transactions/import", [TransactionController::class, "import"])->name("transactions.import");
 });

@@ -6,9 +6,16 @@
 <div class="page-container">
     <div class="header">
         <h1>Transactions</h1>
-        <a href="{{ url('/transactions/create') }}" class="btn btn-primary">
-            <span>+</span> New Transaction
-        </a>
+        <div class="header-actions">
+            <a href="{{ url('/transactions/create') }}" class="btn btn-primary">
+                <span>+</span> New Transaction
+            </a>
+            <form action="{{ route('transactions.import') }}" method="POST" enctype="multipart/form-data" class="import-form">
+                @csrf
+                <input type="file" name="csv_file" accept=".csv" required class="file-input">
+                <button type="submit" class="btn btn-secondary">Import CSV</button>
+            </form>
+        </div>
     </div>
 
     @if(session('success'))
