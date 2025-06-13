@@ -34,6 +34,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
 });
 
+// Logout route
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
 // Test route to send a goal alert email manually
 use Illuminate\Support\Facades\Mail;
 use App\Mail\GoalAlert;
