@@ -5,7 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TransactionController;
 
 Route::get("/", function () {
-    return view("welcome");
+    return view("home");
 });
 
 // Guest routes
